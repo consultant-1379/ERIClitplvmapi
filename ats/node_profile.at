@@ -1,0 +1,23 @@
+litp create -p /infrastructure/storage/storage_profiles/profile_1 -t storage-profile -o storage_profile_name=sp1
+litp create -p /infrastructure/storage/storage_profiles/profile_1/volume_groups/root_vg -t volume-group -o volume_group_name="root_vg" volume_driver=lvm
+litp create -p /infrastructure/storage/storage_profiles/profile_1/volume_groups/root_vg/file_systems/root -t file-system -o type=ext4 mount_point=/ size=100G
+litp create -p /infrastructure/storage/storage_profiles/profile_1/volume_groups/root_vg/file_systems/swap -t file-system -o type=swap mount_point=swap size=32G
+litp create -p /infrastructure/storage/storage_profiles/profile_1/volume_groups/root_vg/physical_devices/internal -t physical-device -o device_name=hd0 
+
+litp create -p /infrastructure/systems/system1 -t system -o system_name='AT_node'
+litp create -p /infrastructure/systems/system1/disks/disk0 -t disk -o name=hd0 size=512G bootable=true uuid=XYZ
+litp create -p /software/profiles/osprofile1 -t os-profile -o name="node-iso" path="/cobbler/ks_mirror/node-iso-x86_64"
+litp create -p /infrastructure/networking/ip_ranges/mgmt_iprange2 -t ip-range -o network_name="mgmt" start="10.10.10.1" end="10.10.10.254" subnet="10.10.10.0/24" gateway="10.10.10.5"
+
+litp create -p /deployments/at -t deployment
+litp create -p /deployments/at/clusters/cluster1 -t cluster
+litp create -p /deployments/at/clusters/cluster1/nodes/node1 -t node -o hostname='node1'
+litp create -p /infrastructure/networking/network_profiles/nodes -t network-profile-base -o name='nodes'
+litp link -p /deployments/at/clusters/cluster1/nodes/node1/network_profile -t network-profile-base -o name='nodes'
+litp link -p /deployments/at/clusters/cluster1/nodes/node1/system -t system -o system_name='AT_node'
+litp link -p /deployments/at/clusters/cluster1/nodes/node1/os -t os-profile -o name="node-iso"
+litp link -p /deployments/at/clusters/cluster1/nodes/node1/ipaddresses/ip1 -t ip-range -o network_name="mgmt"
+litp link -p /deployments/at/clusters/cluster1/nodes/node1/storage_profile -t storage-profile -o storage_profile_name='sp1'
+litp update -p /deployments/at/clusters/cluster1/nodes/node1/storage_profile -o storage_profile_name='sp2'
+assertError create_plan
+assertPlanLength 0
